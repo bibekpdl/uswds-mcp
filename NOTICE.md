@@ -1,6 +1,6 @@
 # Notices and Attribution
 
-This project indexes and summarizes public materials from the official U.S. Web Design System (USWDS).
+`uswds-mcp` indexes and summarizes public materials from the official U.S. Web Design System (USWDS).
 
 ## Official USWDS Sources
 
@@ -13,7 +13,7 @@ USWDS is a project of the U.S. General Services Administration (GSA), Technology
 
 ## Independence
 
-USWDS MCP is an independent open source project. It is not affiliated with, endorsed by, sponsored by, or maintained by GSA, TTS, or the official USWDS team.
+`uswds-mcp` is an independent open source project. It is not affiliated with, endorsed by, sponsored by, or maintained by GSA, TTS, or the official USWDS team.
 
 ## Indexed Source Snapshot
 

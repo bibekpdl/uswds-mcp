@@ -1,11 +1,11 @@
 ---
 name: uswds
-description: Build, audit, or convert government websites and services with the U.S. Web Design System (USWDS). Use when work involves USWDS components, patterns, templates, accessibility guidance, design tokens, utilities, @uswds/uswds, or federal agency website implementation.
+description: Build, audit, or convert websites with the U.S. Web Design System (USWDS) using the unofficial uswds-mcp server. Use when work involves USWDS components, patterns, templates, accessibility guidance, design tokens, utilities, @uswds/uswds, or federal website implementation.
 ---
 
 # USWDS
 
-Use this Skill when creating, auditing, or converting websites with the U.S. Web Design System.
+Use this Skill when creating, auditing, or converting websites with the U.S. Web Design System. `uswds-mcp` is an unofficial independent MCP server; do not imply GSA, TTS, or the official USWDS team endorses the output.
 
 ## Workflow
 

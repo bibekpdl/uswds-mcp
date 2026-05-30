@@ -1,7 +1,7 @@
 {
   "name": "uswds-mcp",
-  "version": "0.1.2",
-  "description": "Model Context Protocol server for U.S. Web Design System guidance, components, patterns, templates, and accessibility checks.",
+  "version": "0.1.3",
+  "description": "Unofficial Model Context Protocol server for working with U.S. Web Design System components, patterns, templates, tokens, and accessibility guidance.",
   "type": "module",
   "license": "MIT",
   "mcpName": "io.github.bibekpdl/uswds-mcp",
@@ -16,9 +16,7 @@
     "federal-websites",
     "accessibility",
     "section-508",
-    "design-system",
-    "gsa",
-    "tts"
+    "design-system"
   ],
   "repository": {
     "type": "git",

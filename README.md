@@ -1,13 +1,17 @@
-# USWDS MCP Server
+# uswds-mcp
 
-USWDS MCP is a local stdio [Model Context Protocol](https://modelcontextprotocol.io/) server for the [U.S. Web Design System](https://designsystem.digital.gov/). It gives AI coding tools and IDEs structured access to USWDS components, design patterns, page templates, packages, design tokens, and accessibility guidance for building standards-based government websites.
+**Unofficial MCP server for the U.S. Web Design System (USWDS).**
 
-The package includes a prebuilt USWDS index generated from:
+`uswds-mcp` is an independent local stdio [Model Context Protocol](https://modelcontextprotocol.io/) server that helps AI coding tools and IDEs work with USWDS components, design patterns, page templates, packages, design tokens, and accessibility guidance.
+
+This project is **not affiliated with, endorsed by, sponsored by, or maintained by** the U.S. General Services Administration (GSA), Technology Transformation Services (TTS), or the official USWDS team.
+
+The package includes a prebuilt index generated from public USWDS sources:
 
 - [`uswds/uswds-site`](https://github.com/uswds/uswds-site)
 - [`uswds/uswds`](https://github.com/uswds/uswds)
 
-USWDS is an official project of the U.S. General Services Administration (GSA), Technology Transformation Services (TTS). This MCP server is an independent tool and is not affiliated with, endorsed by, or sponsored by GSA, TTS, or the official USWDS team.
+USWDS is an official project of GSA/TTS. This package is an independent developer tool for working with public USWDS materials.
 
 ## Features
 
@@ -56,7 +60,7 @@ Use the package with an MCP client that supports stdio servers:
   "mcpServers": {
     "uswds": {
       "command": "npx",
-      "args": ["uswds-mcp"]
+      "args": ["-y", "uswds-mcp"]
     }
   }
 }
