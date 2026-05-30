@@ -18,14 +18,30 @@ USWDS is an official project of the U.S. General Services Administration (GSA), 
 - Validate common USWDS markup, accessibility, and token-usage issues.
 - Include a Codex Skill at `.agents/skills/uswds/SKILL.md` for agent workflow guidance.
 
-## Installation
+## Use the Published Package
+
+Most MCP clients can run the published package directly:
+
+```sh
+npx -y uswds-mcp
+```
+
+For a project dependency:
+
+```sh
+npm install uswds-mcp
+```
+
+The published package includes `data/records.json`, so documentation-backed tools work without running an ingest step.
+
+## Develop from Source
 
 ```sh
 npm install
 npm run build
 ```
 
-The published package includes `data/records.json`, so documentation-backed tools work without running an ingest step. To refresh the bundled index from upstream USWDS repositories:
+To refresh the bundled index from upstream USWDS repositories:
 
 ```sh
 npm run ingest
