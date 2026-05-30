@@ -23,6 +23,7 @@
     ".agents/skills/uswds/SKILL.md",
     "server.json",
     "README.md",
+    "NOTICE.md",
     "LICENSE"
   ],
   "scripts": {

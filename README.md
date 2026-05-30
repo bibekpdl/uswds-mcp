@@ -7,6 +7,8 @@ The package includes a prebuilt USWDS index generated from:
 - [`uswds/uswds-site`](https://github.com/uswds/uswds-site)
 - [`uswds/uswds`](https://github.com/uswds/uswds)
 
+USWDS is an official project of the U.S. General Services Administration (GSA), Technology Transformation Services (TTS). This MCP server is an independent tool and is not affiliated with, endorsed by, or sponsored by GSA, TTS, or the official USWDS team.
+
 ## Features
 
 - Search USWDS documentation and implementation records.
@@ -87,3 +89,5 @@ npm run dev
 ## License
 
 MIT
+
+See [NOTICE.md](./NOTICE.md) for USWDS attribution, upstream source links, and licensing notes for indexed USWDS material.
