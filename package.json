@@ -1,0 +1,53 @@
+{
+  "name": "uswds-mcp",
+  "version": "0.1.0",
+  "description": "Model Context Protocol server for U.S. Web Design System guidance, components, patterns, templates, and accessibility checks.",
+  "type": "module",
+  "license": "MIT",
+  "mcpName": "io.github.bibekpdl/uswds-mcp",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/bibekpdl/uswds-mcp.git"
+  },
+  "homepage": "https://github.com/bibekpdl/uswds-mcp#readme",
+  "bugs": {
+    "url": "https://github.com/bibekpdl/uswds-mcp/issues"
+  },
+  "bin": {
+    "uswds-mcp": "./dist/src/index.js"
+  },
+  "files": [
+    "dist/src/**/*.js",
+    "!dist/src/**/*.test.js",
+    "data/*.json",
+    ".agents/skills/uswds/SKILL.md",
+    "server.json",
+    "README.md",
+    "LICENSE"
+  ],
+  "scripts": {
+    "build": "tsc -p tsconfig.json",
+    "dev": "npm run build --silent && node dist/src/index.js",
+    "ingest": "npm run build --silent && node dist/src/ingest/indexer.js",
+    "test": "vitest run",
+    "typecheck": "tsc -p tsconfig.json --noEmit",
+    "prepack": "npm run build"
+  },
+  "dependencies": {
+    "@modelcontextprotocol/sdk": "^1.18.2",
+    "@uswds/uswds": "^3.13.0",
+    "cheerio": "^1.0.0",
+    "fast-glob": "^3.3.3",
+    "gray-matter": "^4.0.3",
+    "zod": "^3.25.76"
+  },
+  "devDependencies": {
+    "@types/node": "^22.10.5",
+    "tsx": "^4.19.2",
+    "typescript": "^5.7.3",
+    "vitest": "^4.1.7"
+  },
+  "engines": {
+    "node": ">=18"
+  }
+}

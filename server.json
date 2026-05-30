@@ -1,0 +1,21 @@
+{
+  "$schema": "https://static.modelcontextprotocol.io/schemas/2025-12-11/server.schema.json",
+  "name": "io.github.bibekpdl/uswds-mcp",
+  "title": "USWDS MCP",
+  "description": "USWDS implementation assistant for components, patterns, templates, accessibility guidance, and government website generation.",
+  "version": "0.1.0",
+  "repository": {
+    "url": "https://github.com/bibekpdl/uswds-mcp",
+    "source": "github"
+  },
+  "packages": [
+    {
+      "registryType": "npm",
+      "identifier": "uswds-mcp",
+      "version": "0.1.0",
+      "transport": {
+        "type": "stdio"
+      }
+    }
+  ]
+}

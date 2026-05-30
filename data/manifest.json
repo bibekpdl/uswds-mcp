@@ -1,0 +1,24 @@
+{
+  "generatedAt": "2026-05-30T03:02:24.232Z",
+  "sources": [
+    {
+      "name": "uswds-site",
+      "url": "https://github.com/uswds/uswds-site",
+      "commit": "d67eac8235f117abb84f730b48ef00366519bce7"
+    },
+    {
+      "name": "uswds",
+      "url": "https://github.com/uswds/uswds",
+      "commit": "dcbd6cd25a3843ec5604084d556c4b1d41f544bf",
+      "version": "3.13.0"
+    }
+  ],
+  "recordCounts": {
+    "component": 48,
+    "package": 88,
+    "pattern": 1,
+    "template": 8,
+    "token": 19,
+    "utility": 16
+  }
+}
