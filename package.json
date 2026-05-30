@@ -4,6 +4,7 @@
   "description": "Unofficial Model Context Protocol server for working with U.S. Web Design System components, patterns, templates, tokens, and accessibility guidance.",
   "type": "module",
   "license": "MIT",
+  "author": "Bibek Poudel",
   "mcpName": "io.github.bibekpdl/uswds-mcp",
   "keywords": [
     "uswds",

@@ -9,6 +9,8 @@
 - USWDS source repository: https://github.com/uswds/uswds
 - USWDS npm package: https://www.npmjs.com/package/@uswds/uswds
 
+For authoritative guidance, use the official USWDS website and source repositories listed above.
+
 USWDS is a project of the U.S. General Services Administration (GSA), Technology Transformation Services (TTS).
 
 ## Independence
