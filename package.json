@@ -5,6 +5,21 @@
   "type": "module",
   "license": "MIT",
   "mcpName": "io.github.bibekpdl/uswds-mcp",
+  "keywords": [
+    "uswds",
+    "us-web-design-system",
+    "u-s-web-design-system",
+    "model-context-protocol",
+    "mcp",
+    "mcp-server",
+    "government-websites",
+    "federal-websites",
+    "accessibility",
+    "section-508",
+    "design-system",
+    "gsa",
+    "tts"
+  ],
   "repository": {
     "type": "git",
     "url": "git+https://github.com/bibekpdl/uswds-mcp.git"
@@ -21,6 +36,9 @@
     "!dist/src/**/*.test.js",
     "data/*.json",
     ".agents/skills/uswds/SKILL.md",
+    "docs/*.md",
+    "examples/**/*.json",
+    "examples/**/*.md",
     "server.json",
     "README.md",
     "NOTICE.md",

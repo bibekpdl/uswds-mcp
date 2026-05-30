@@ -1,0 +1,8 @@
+{
+  "mcpServers": {
+    "uswds": {
+      "command": "npx",
+      "args": ["-y", "uswds-mcp"]
+    }
+  }
+}

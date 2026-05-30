@@ -1,6 +1,6 @@
-# USWDS MCP
+# USWDS MCP Server
 
-USWDS MCP is a local stdio [Model Context Protocol](https://modelcontextprotocol.io/) server for the [U.S. Web Design System](https://designsystem.digital.gov/). It exposes structured guidance for USWDS components, patterns, templates, packages, design tokens, and accessibility checks so coding agents can build USWDS-first government websites.
+USWDS MCP is a local stdio [Model Context Protocol](https://modelcontextprotocol.io/) server for the [U.S. Web Design System](https://designsystem.digital.gov/). It gives AI coding tools and IDEs structured access to USWDS components, design patterns, page templates, packages, design tokens, and accessibility guidance for building standards-based government websites.
 
 The package includes a prebuilt USWDS index generated from:
 
@@ -51,6 +51,19 @@ Registry name:
 ```text
 io.github.bibekpdl/uswds-mcp
 ```
+
+## AI Tool and IDE Setup
+
+USWDS MCP uses the standard stdio MCP transport and can be used by MCP-compatible AI tools and IDEs. See [docs/CLIENTS.md](./docs/CLIENTS.md) for examples covering:
+
+- Claude Desktop
+- Claude Code
+- Cursor
+- VS Code with GitHub Copilot MCP support
+- Windsurf Cascade
+- Generic MCP clients
+
+Example configs are also available in [examples/](./examples).
 
 ## Development
 

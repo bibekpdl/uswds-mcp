@@ -1,0 +1,8 @@
+{
+  "name": "uswds",
+  "transport": {
+    "type": "stdio",
+    "command": "npx",
+    "args": ["-y", "uswds-mcp"]
+  }
+}

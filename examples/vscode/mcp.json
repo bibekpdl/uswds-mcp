@@ -1,0 +1,9 @@
+{
+  "servers": {
+    "uswds": {
+      "type": "stdio",
+      "command": "npx",
+      "args": ["-y", "uswds-mcp"]
+    }
+  }
+}
