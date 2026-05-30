@@ -2,7 +2,7 @@
 
 **Unofficial MCP server for the U.S. Web Design System (USWDS).**
 
-`uswds-mcp` is an independent local stdio [Model Context Protocol](https://modelcontextprotocol.io/) server that helps AI coding tools and IDEs work with USWDS components, design patterns, page templates, packages, design tokens, and accessibility guidance.
+`uswds-mcp` is an independent local stdio [Model Context Protocol](https://modelcontextprotocol.io/) server that helps AI coding tools and IDEs use USWDS components, design patterns, page templates, packages, design tokens, and accessibility guidance.
 
 This project is **not affiliated with, endorsed by, sponsored by, or maintained by** the U.S. General Services Administration (GSA), Technology Transformation Services (TTS), or the official USWDS team.
 

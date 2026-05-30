@@ -5,7 +5,7 @@ description: Build, audit, or convert websites with the U.S. Web Design System (
 
 # USWDS
 
-Use this Skill when creating, auditing, or converting websites with the U.S. Web Design System. `uswds-mcp` is an unofficial independent MCP server; do not imply GSA, TTS, or the official USWDS team endorses the output.
+Use this skill when creating, auditing, or converting websites with the U.S. Web Design System. `uswds-mcp` is an unofficial independent MCP server; do not imply GSA, TTS, or the official USWDS team endorses the output.
 
 ## Workflow
 
