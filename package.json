@@ -1,6 +1,6 @@
 {
   "name": "uswds-mcp",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "description": "Model Context Protocol server for U.S. Web Design System guidance, components, patterns, templates, and accessibility checks.",
   "type": "module",
   "license": "MIT",
@@ -29,7 +29,7 @@
     "url": "https://github.com/bibekpdl/uswds-mcp/issues"
   },
   "bin": {
-    "uswds-mcp": "./dist/src/index.js"
+    "uswds-mcp": "dist/src/index.js"
   },
   "files": [
     "dist/src/**/*.js",
