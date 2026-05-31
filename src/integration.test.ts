@@ -31,6 +31,18 @@ describe("validateProjectUswdsSetup", () => {
     expect(findings.some((finding) => finding.rule === "wrong-css-import" && finding.severity === "error")).toBe(true);
   });
 
+  it("allows static HTML to reference a local USWDS dist CSS asset", () => {
+    const findings = validateProjectUswdsSetup({
+      framework: "Static HTML",
+      files: {
+        "index.html": '<link rel="stylesheet" href="/assets/uswds/dist/css/uswds.min.css" />',
+      },
+      no_cdn: true,
+    });
+
+    expect(findings.some((finding) => finding.rule === "wrong-css-import")).toBe(false);
+  });
+
   it("flags missing USWDS JavaScript when interactive markup is present", () => {
     const findings = validateProjectUswdsSetup({
       framework: "Vite React",

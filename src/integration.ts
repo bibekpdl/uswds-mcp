@@ -248,7 +248,7 @@ export function validateProjectUswdsSetup(input: ProjectSetupValidationInput): P
   }
 
   for (const file of files) {
-    if (file.text.includes("@uswds/uswds/dist/css/uswds.min.css")) {
+    if (/(?:import|@import)\s+["']@uswds\/uswds\/dist\/css\/uswds\.min\.css["']/.test(file.text)) {
       findings.push({
         severity: "error",
         rule: "wrong-css-import",
