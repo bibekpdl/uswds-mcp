@@ -125,6 +125,26 @@ After installing, try:
 Use the USWDS MCP server to design a task-focused federal service page for applying for a permit. Search relevant USWDS components and patterns first, generate USWDS HTML, and validate the markup before finalizing.
 ```
 
+For framework integration work, ask for both the recipe and setup validation:
+
+```text
+Use the USWDS MCP server to integrate USWDS into a Next.js App Router project without a CDN. Get the integration recipe first, inspect package.json and app layout files, validate the project setup, then implement with official USWDS markup.
+```
+
+Useful tool sequence:
+
+```text
+get_uswds_integration_recipe -> search_uswds/get_component -> validate_uswds_project_setup -> validate_uswds_markup
+```
+
+For npm/bundler projects, the public CSS import path is:
+
+```ts
+import "@uswds/uswds/css/uswds.min.css";
+```
+
+Avoid the internal `@uswds/uswds/dist/css/uswds.min.css` import path in generated guidance and project code.
+
 ## Troubleshooting
 
 - If the client cannot find `npx`, install Node.js or use an absolute path to `npx`.

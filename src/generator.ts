@@ -26,8 +26,10 @@ export function frameworkNotes(framework?: string): string[] {
   const normalized = framework?.toLowerCase();
   const base = [
     "Install official USWDS assets with @uswds/uswds where the project uses npm.",
+    'For npm/bundler projects, import CSS from @uswds/uswds/css/uswds.min.css rather than the internal dist path.',
     "Keep official USWDS HTML structure and classes as the canonical implementation.",
     "Use uswds-init.min.js in the head and uswds.min.js before the closing body tag when interactive components are present.",
+    "Use get_uswds_integration_recipe for framework-specific package, asset, and migration guidance.",
   ];
   if (!normalized) return base;
   if (normalized.includes("react") || normalized.includes("next")) {

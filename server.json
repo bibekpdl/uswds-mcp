@@ -3,7 +3,7 @@
   "name": "io.github.bibekpdl/uswds-mcp",
   "title": "Unofficial MCP Server for USWDS",
   "description": "Independent stdio MCP server for working with U.S. Web Design System components, patterns, templates, tokens, and accessibility guidance.",
-  "version": "0.1.3",
+  "version": "0.1.4",
   "repository": {
     "url": "https://github.com/bibekpdl/uswds-mcp",
     "source": "github"
@@ -12,7 +12,7 @@
     {
       "registryType": "npm",
       "identifier": "uswds-mcp",
-      "version": "0.1.3",
+      "version": "0.1.4",
       "transport": {
         "type": "stdio"
       }

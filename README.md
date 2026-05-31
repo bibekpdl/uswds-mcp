@@ -19,7 +19,9 @@ USWDS is an official project of GSA/TTS. This package is an independent develope
 - Retrieve structured component, pattern, template, token, and package records.
 - Recommend USWDS page and service structures.
 - Generate framework-neutral USWDS HTML with framework adaptation notes.
+- Provide framework-specific integration recipes for Next.js, React/Vite, static HTML, Rails, and Drupal.
 - Validate common USWDS markup, accessibility, and token-usage issues.
+- Validate project setup risks such as wrong package import paths, missing scripts, CDN usage, copied assets, and global CSS impact.
 - Include a Codex Skill at `.agents/skills/uswds/SKILL.md` for agent workflow guidance.
 
 ## Use the Published Package
@@ -85,6 +87,10 @@ USWDS MCP uses the standard stdio MCP transport and can be used by MCP-compatibl
 
 Example configs are also available in [examples/](./examples).
 
+For framework-specific setup guidance, see [docs/INTEGRATION.md](./docs/INTEGRATION.md).
+
+For a tool-by-tool usage guide, see [docs/TOOLS.md](./docs/TOOLS.md).
+
 ## Development
 
 ```sh
@@ -103,6 +109,8 @@ npm run dev
 - `recommend_uswds_structure`
 - `generate_uswds_page`
 - `validate_uswds_markup`
+- `get_uswds_integration_recipe`
+- `validate_uswds_project_setup`
 
 ## Resources
 
@@ -118,6 +126,7 @@ npm run dev
 - `build_service_page`
 - `audit_uswds_page`
 - `convert_page_to_uswds`
+- `integrate_uswds_in_project`
 
 ## License
 

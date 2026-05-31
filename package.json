@@ -1,6 +1,6 @@
 {
   "name": "uswds-mcp",
-  "version": "0.1.3",
+  "version": "0.1.4",
   "description": "Unofficial Model Context Protocol server for working with U.S. Web Design System components, patterns, templates, tokens, and accessibility guidance.",
   "type": "module",
   "license": "MIT",

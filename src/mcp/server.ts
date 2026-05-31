@@ -1,6 +1,7 @@
 import { McpServer, ResourceTemplate } from "@modelcontextprotocol/sdk/server/mcp.js";
 import { z } from "zod";
 import { generatePage, recommendStructure } from "../generator.js";
+import { getIntegrationRecipe, validateProjectUswdsSetup } from "../integration.js";
 import { searchRecords } from "../search.js";
 import { getRecord, getResourceRecord, loadIndex } from "../store.js";
 import { UswdsRecordType } from "../types.js";
@@ -46,7 +47,7 @@ async function requireIndexedRecords() {
 export function createServer(): McpServer {
   const server = new McpServer({
     name: "uswds-mcp",
-    version: "0.1.0",
+    version: "0.1.4",
   });
 
   server.registerTool(
@@ -170,6 +171,44 @@ export function createServer(): McpServer {
       return jsonResult({
         summary: summarizeValidation(findings),
         pageContext: page_context,
+        findings,
+      });
+    }
+  );
+
+  server.registerTool(
+    "get_uswds_integration_recipe",
+    {
+      title: "Get USWDS Integration Recipe",
+      description: "Return framework-specific USWDS setup guidance for npm, assets, JavaScript, CSS, and migration.",
+      inputSchema: {
+        framework: z.string().min(1),
+        no_cdn: z.boolean().optional(),
+        migration_scope: z.enum(["new-project", "single-page", "full-site"]).optional(),
+      },
+    },
+    async (input) => jsonResult(getIntegrationRecipe(input))
+  );
+
+  server.registerTool(
+    "validate_uswds_project_setup",
+    {
+      title: "Validate USWDS Project Setup",
+      description:
+        "Check provided project files for common USWDS framework integration issues such as import paths, assets, scripts, CDN usage, and global CSS risk.",
+      inputSchema: {
+        framework: z.string().optional(),
+        package_json: z.string().optional(),
+        files: z.record(z.string()).optional(),
+        file_paths: z.array(z.string()).optional(),
+        no_cdn: z.boolean().optional(),
+        migration_scope: z.enum(["new-project", "single-page", "full-site"]).optional(),
+      },
+    },
+    async (input) => {
+      const findings = validateProjectUswdsSetup(input);
+      return jsonResult({
+        summary: summarizeValidation(findings),
         findings,
       });
     }
@@ -307,6 +346,30 @@ export function createServer(): McpServer {
           content: {
             type: "text",
             text: `Convert this page to USWDS-first markup for ${target_framework ?? "framework-neutral HTML"}. Search components and patterns before rewriting, preserve semantic content, and validate the result:\n\n${html}`,
+          },
+        },
+      ],
+    })
+  );
+
+  server.registerPrompt(
+    "integrate_uswds_in_project",
+    {
+      title: "Integrate USWDS in Project",
+      description: "Plan framework-specific USWDS package, asset, CSS, and JavaScript integration.",
+      argsSchema: {
+        framework: z.string(),
+        migration_scope: z.enum(["new-project", "single-page", "full-site"]).optional(),
+        no_cdn: z.boolean().optional(),
+      },
+    },
+    ({ framework, migration_scope, no_cdn }) => ({
+      messages: [
+        {
+          role: "user",
+          content: {
+            type: "text",
+            text: `Use get_uswds_integration_recipe for ${framework}, then inspect relevant project files and run validate_uswds_project_setup before changing code. Migration scope: ${migration_scope ?? "not specified"}. No CDN: ${no_cdn ?? false}. Preserve official USWDS markup and validate final HTML.`,
           },
         },
       ],
