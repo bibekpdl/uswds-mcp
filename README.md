@@ -100,6 +100,10 @@ scenario                        unknown classes  errors  warnings  axe violation
 ...
 ```
 
+## Does it help?
+
+In a small test (5 tasks, same model, with and without the server) pages built with `uswds-mcp` had **0 validator errors on 5 of 5 pages, versus 1 of 5 without it**. The model did not invent class names in either case; what it missed without the tools was structure, such as the header overlay that makes the mobile menu work, banner internals, and accordion button types. It is a small, single-run sample, so see the caveats and method in [docs/COMPARISON.md](./docs/COMPARISON.md).
+
 ## How it works
 
 1. **Ingest** (`npm run ingest`): renders every official `@uswds/uswds` twig template with its JSON fixtures into canonical HTML, extracts all class names from the official stylesheet, and indexes the official docs ([`uswds-site`](https://github.com/uswds/uswds-site)).
