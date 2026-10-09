@@ -2,8 +2,8 @@
   "$schema": "https://static.modelcontextprotocol.io/schemas/2025-12-11/server.schema.json",
   "name": "io.github.bibekpdl/uswds-mcp",
   "title": "Unofficial MCP Server for USWDS",
-  "description": "Independent stdio MCP server for working with U.S. Web Design System components, patterns, templates, tokens, and accessibility guidance.",
-  "version": "0.1.4",
+  "description": "Independent MCP server that gives AI tools the official USWDS markup, a class-level validator, and an accessible page composer, so generated government UI is actually USWDS-compliant.",
+  "version": "0.2.0",
   "repository": {
     "url": "https://github.com/bibekpdl/uswds-mcp",
     "source": "github"
@@ -12,7 +12,7 @@
     {
       "registryType": "npm",
       "identifier": "uswds-mcp",
-      "version": "0.1.4",
+      "version": "0.2.0",
       "transport": {
         "type": "stdio"
       }

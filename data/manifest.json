@@ -1,16 +1,16 @@
 {
-  "generatedAt": "2026-05-30T03:02:24.232Z",
+  "generatedAt": "2026-10-09T14:42:10.343Z",
   "sources": [
     {
       "name": "uswds-site",
       "url": "https://github.com/uswds/uswds-site",
-      "commit": "d67eac8235f117abb84f730b48ef00366519bce7"
+      "commit": "69c76d6c85b3c8c322dc38e4613e43451a34a06a"
     },
     {
       "name": "uswds",
       "url": "https://github.com/uswds/uswds",
-      "commit": "dcbd6cd25a3843ec5604084d556c4b1d41f544bf",
-      "version": "3.13.0"
+      "commit": "ec801339fa287d26ef0e1b3a19291eeaa0b3b634",
+      "version": "3.14.0"
     }
   ],
   "recordCounts": {
@@ -19,6 +19,12 @@
     "pattern": 1,
     "template": 8,
     "token": 19,
-    "utility": 16
+    "utility": 16,
+    "markup_snippet": 180,
+    "css_class": 5449
+  },
+  "markupSource": {
+    "package": "@uswds/uswds",
+    "version": "3.14.0"
   }
 }

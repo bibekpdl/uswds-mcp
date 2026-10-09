@@ -11,19 +11,27 @@ This server is intentionally non-destructive. It provides structured USWDS knowl
 | `get_pattern` | Retrieve structured guidance for a USWDS design pattern or workflow. |
 | `get_template` | Retrieve structured guidance for a USWDS page template. |
 
+## Markup Tools (start here)
+
+| Tool | Use |
+| --- | --- |
+| `get_component_markup` | Official HTML for a component or page template. Args: `component` (omit to list all), `variant`, `all_variants`, `asset_path`. Keep the structure, classes and ARIA wiring; change only text, hrefs and ids that must be unique. |
+| `find_uswds_classes` | Look up real class names, including utilities and responsive prefixes. Args: `query`, `limit`. |
+| `compose_uswds_page` | Build a complete page from sections (`hero`, `content`, `alert`, `summary_box`, `card_group`, `process_list`, `step_indicator`, `accordion`, `table`, `form`, `contact`). Returns `html`, `placeholders`, and `validation`. |
+
 ## Planning and Generation Tools
 
 | Tool | Use |
 | --- | --- |
 | `recommend_uswds_structure` | Recommend a USWDS-first structure for a site or service workflow. |
-| `generate_uswds_page` | Generate framework-neutral USWDS HTML with implementation notes. |
+| `generate_uswds_page` | Quick start: infers sections from free text, returns validated HTML, an editable `spec`, bracketed `placeholders`, and notes. Prefer `compose_uswds_page` when you have real content. |
 | `get_uswds_integration_recipe` | Get framework-specific setup guidance for package installation, CSS, JavaScript, assets, component strategy, and migration. |
 
 ## Validation Tools
 
 | Tool | Use |
 | --- | --- |
-| `validate_uswds_markup` | Check HTML for common USWDS markup, accessibility, and token drift issues. |
+| `validate_uswds_markup` | Validate HTML (fragment or full page) against real USWDS class names, component structure, forms, ARIA wiring and accessibility basics. Findings include selector, snippet, suggestion, component and docs link. Args: `html`, `mode` (`auto`/`document`/`fragment`). |
 | `validate_uswds_project_setup` | Check provided project files for common setup risks such as wrong CSS imports, missing USWDS scripts, CDN usage, copied `dist` assets, and global CSS migration impact. |
 
 ## Recommended Sequences
@@ -31,7 +39,7 @@ This server is intentionally non-destructive. It provides structured USWDS knowl
 For a new service page:
 
 ```text
-search_uswds -> get_template/get_pattern/get_component -> recommend_uswds_structure -> generate_uswds_page -> validate_uswds_markup
+recommend_uswds_structure -> get_component_markup (per component) -> compose_uswds_page -> validate_uswds_markup (repeat until no errors)
 ```
 
 For framework integration:

@@ -1,0 +1,33 @@
+name: Refresh USWDS data
+
+# Re-ingests the official USWDS docs, markup and CSS class list monthly and opens a PR if anything changed.
+on:
+  schedule:
+    - cron: "0 6 1 * *"
+  workflow_dispatch:
+
+permissions:
+  contents: write
+  pull-requests: write
+
+jobs:
+  refresh:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+      - run: npm ci
+      - run: npm install @uswds/uswds@latest
+      - run: npm run ingest
+      - run: npm test
+      - uses: peter-evans/create-pull-request@v7
+        with:
+          branch: chore/refresh-uswds-data
+          commit-message: "chore: refresh USWDS index"
+          title: "chore: refresh USWDS index"
+          body: |
+            Automated re-ingest of the official USWDS sources (docs, canonical markup, CSS class list).
+            Tests, including the self-consistency check over every official snippet, passed before this PR was opened.

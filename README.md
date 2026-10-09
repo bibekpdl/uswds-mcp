@@ -1,135 +1,130 @@
 # uswds-mcp
 
-**Unofficial MCP server for the U.S. Web Design System (USWDS).**
+**Make AI-generated government UI actually USWDS-compliant.**
 
-`uswds-mcp` is an independent local stdio [Model Context Protocol](https://modelcontextprotocol.io/) server that helps AI coding tools and IDEs use USWDS components, design patterns, page templates, packages, design tokens, and accessibility guidance.
+An MCP server that gives Claude, Cursor, Copilot, Windsurf and any other MCP client the **official [U.S. Web Design System](https://designsystem.digital.gov/) markup**, a **validator that knows every real USWDS class**, and a **page composer** that outputs accessible, validated pages.
 
-This project is **not affiliated with, endorsed by, sponsored by, or maintained by** the U.S. General Services Administration (GSA), Technology Transformation Services (TTS), or the official USWDS team.
+> Unofficial and independent. Not affiliated with, endorsed by, or maintained by GSA, TTS, or the official USWDS team. See [NOTICE.md](./NOTICE.md).
 
-The package includes a prebuilt index generated from public USWDS sources:
+## The problem
 
-- [`uswds/uswds-site`](https://github.com/uswds/uswds-site)
-- [`uswds/uswds`](https://github.com/uswds/uswds)
+LLMs write USWDS from memory. They invent `usa-btn`, forget the `usa-overlay` that makes the mobile menu work, put `usa-card` markup without its container, and wire up accordions to nothing. The result *looks* plausible and is subtly broken.
 
-USWDS is an official project of GSA/TTS. This package is an independent developer tool for working with public USWDS materials.
+`uswds-mcp` closes that loop:
 
-## Features
+```text
+recommend_uswds_structure  →  get_component_markup  →  compose_uswds_page  →  validate_uswds_markup
+        (what to use)          (official HTML)         (accessible page)       (fix until 0 errors)
+```
 
-- Search USWDS documentation and implementation records.
-- Retrieve structured component, pattern, template, token, and package records.
-- Recommend USWDS page and service structures.
-- Generate framework-neutral USWDS HTML with framework adaptation notes.
-- Provide framework-specific integration recipes for Next.js, React/Vite, static HTML, Rails, and Drupal.
-- Validate common USWDS markup, accessibility, and token-usage issues.
-- Validate project setup risks such as wrong package import paths, missing scripts, CDN usage, copied assets, and global CSS impact.
-- Include a Codex Skill at `.agents/skills/uswds/SKILL.md` for agent workflow guidance.
+| Without | With uswds-mcp |
+| --- | --- |
+| Class names recalled from memory | Official HTML rendered from the `@uswds/uswds` templates (178 snippets, ~70 components and page templates, every variant) |
+| "Looks right" | Validator rejects any `usa-*` class that is not in the USWDS stylesheet, with a did-you-mean |
+| Missing structure goes unnoticed | BEM, required children, ARIA wiring, form control structure, header overlay, scripts, heading order, duplicate ids, link/image/button names |
+| Stock template output | `compose_uswds_page` builds pages from your real sections; zero axe-core violations in CI |
 
-## Use the Published Package
+### What a validator finding looks like
 
-Most MCP clients can run the published package directly:
+```jsonc
+{
+  "severity": "error",
+  "rule": "unknown-class",
+  "message": "\"usa-alrt\" is not a class defined by USWDS.",
+  "selector": "div.usa-alrt",
+  "snippet": "<div class=\"usa-alrt usa-alert--eror\">",
+  "suggestion": "Did you mean \"usa-alert\"?"
+}
+```
+
+Findings carry the offending element, a fix suggestion, the component to look up, and a docs link, so the model can repair its own output.
+
+## Quick start
 
 ```sh
 npx -y uswds-mcp
 ```
 
-For a project dependency:
-
-```sh
-npm install uswds-mcp
-```
-
-The published package includes `data/records.json`, so documentation-backed tools work without running an ingest step.
-
-## Develop from Source
-
-```sh
-npm install
-npm run build
-```
-
-To refresh the bundled index from upstream USWDS repositories:
-
-```sh
-npm run ingest
-```
-
-## MCP Configuration
-
-Use the package with an MCP client that supports stdio servers:
+Add it to your MCP client:
 
 ```json
 {
   "mcpServers": {
-    "uswds": {
-      "command": "npx",
-      "args": ["-y", "uswds-mcp"]
-    }
+    "uswds": { "command": "npx", "args": ["-y", "uswds-mcp"] }
   }
 }
 ```
 
-Registry name:
+Claude Code: `claude mcp add uswds -- npx -y uswds-mcp`
 
-```text
-io.github.bibekpdl/uswds-mcp
-```
+Setup for Claude Desktop, Cursor, VS Code, Windsurf and others: [docs/CLIENTS.md](./docs/CLIENTS.md). Ready-made configs are in [examples/](./examples).
 
-## AI Tool and IDE Setup
-
-USWDS MCP uses the standard stdio MCP transport and can be used by MCP-compatible AI tools and IDEs. See [docs/CLIENTS.md](./docs/CLIENTS.md) for examples covering:
-
-- Claude Desktop
-- Claude Code
-- Cursor
-- VS Code with GitHub Copilot MCP support
-- Windsurf Cascade
-- Generic MCP clients
-
-Example configs are also available in [examples/](./examples).
-
-For framework-specific setup guidance, see [docs/INTEGRATION.md](./docs/INTEGRATION.md).
-
-For a tool-by-tool usage guide, see [docs/TOOLS.md](./docs/TOOLS.md).
-
-## Development
-
-```sh
-npm run typecheck
-npm test
-npm run build
-npm run dev
-```
+No network, API key, or ingest step needed: the data ships in the package.
 
 ## Tools
 
-- `search_uswds`
-- `get_component`
-- `get_pattern`
-- `get_template`
-- `recommend_uswds_structure`
-- `generate_uswds_page`
-- `validate_uswds_markup`
-- `get_uswds_integration_recipe`
-- `validate_uswds_project_setup`
+| Tool | Use |
+| --- | --- |
+| `get_component_markup` | **Official HTML** for a component/page template and its variants (`accordion`, `footer` + `slim`, `sign-in`, ...). Understands everyday names (`dropdown` → select). |
+| `compose_uswds_page` | Build a full page from structured sections: hero, content, alert, summary box, cards, process list, step indicator, accordion, table, form, contact. |
+| `validate_uswds_markup` | Validate fragments or full pages: real class names, component structure, forms, ARIA, accessibility basics. |
+| `find_uswds_classes` | Look up real classes, including utilities and responsive variants (`margin top 2`, `tablet grid col 6`). |
+| `generate_uswds_page` | Quick start from free-text requirements; returns an editable section spec, bracketed placeholders, and its own validation. |
+| `recommend_uswds_structure` | USWDS-first structure for a service or page. |
+| `search_uswds` | Search docs, accessibility and usage guidance (with synonym expansion). |
+| `get_component` / `get_pattern` / `get_template` | Structured guidance, plus the canonical markup for components. |
+| `get_uswds_integration_recipe` | Framework setup for Next.js, Vite/React, static HTML, Rails, Drupal. |
+| `validate_uswds_project_setup` | Catch wrong CSS import paths, missing scripts, CDN use, copied `dist`, global CSS risk. |
 
-## Resources
+All tools are read-only. See [docs/TOOLS.md](./docs/TOOLS.md) for arguments and recommended sequences.
 
-- `uswds://component/{slug}`
-- `uswds://pattern/{slug}`
-- `uswds://template/{slug}`
-- `uswds://token/{category}`
-- `uswds://package/{name}`
+**Resources:** `uswds://component/{slug}`, `uswds://pattern/{slug}`, `uswds://template/{slug}`, `uswds://token/{category}`, `uswds://package/{name}`
+**Prompts:** `build_agency_website`, `build_service_page`, `audit_uswds_page`, `convert_page_to_uswds`, `integrate_uswds_in_project`
 
-## Prompts
+## Example
 
-- `build_agency_website`
-- `build_service_page`
-- `audit_uswds_page`
-- `convert_page_to_uswds`
-- `integrate_uswds_in_project`
+> *"Build a page where residents renew a fishing permit: eligibility, fees table, steps, FAQ, contact."*
+
+The model calls `compose_uswds_page` and gets back a complete page with banner, skipnav, header (with `usa-overlay`), breadcrumbs, summary box, striped table with caption and scoped headers, process list, accordion, contact details, slim footer and identifier, plus a list of the `placeholders` that still need real content, and a validation result.
+
+Prefer to see it first? Run the scorecard:
+
+```sh
+npm run eval
+```
+
+```text
+scenario                        unknown classes  errors  warnings  axe violations
+'Apply for housing assistance'  0                0       0         0
+'Renew a fishing permit'        0                0       0         0
+...
+```
+
+## How it works
+
+1. **Ingest** (`npm run ingest`): renders every official `@uswds/uswds` twig template with its JSON fixtures into canonical HTML, extracts all class names from the official stylesheet, and indexes the official docs ([`uswds-site`](https://github.com/uswds/uswds-site)).
+2. **Validate against ground truth**: the validator is tested against *every* official snippet (they must pass) and against a corpus of 30 typical LLM mistakes (they must be caught).
+3. **Stay current**: docs and markup come from the same USWDS version (enforced by a test), and a monthly workflow re-ingests and opens a PR.
+
+Current data: USWDS 3.14.0.
+
+## Limits
+
+- Static analysis. It cannot judge color contrast, reading order on rendered pages, or real screen-reader behavior. USWDS components do not by themselves make a site Section 508 compliant; keep testing with axe, keyboard and screen readers.
+- Custom (non-`usa-`) classes are allowed and not validated.
+- Upstream fixture text in angle brackets (e.g. `<Project title>`) is placeholder content.
+
+## Develop
+
+```sh
+npm install
+npm test         # unit, self-consistency over official markup, MCP end-to-end, axe-core
+npm run eval
+npm run ingest   # refresh from upstream
+```
+
+See [CONTRIBUTING.md](./CONTRIBUTING.md) and the [CHANGELOG](./CHANGELOG.md).
 
 ## License
 
-MIT
-
-See [NOTICE.md](./NOTICE.md) for USWDS attribution, upstream source links, and licensing notes for indexed USWDS material.
+MIT. See [NOTICE.md](./NOTICE.md) for USWDS attribution and the licensing notes for indexed USWDS material.

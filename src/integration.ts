@@ -123,13 +123,18 @@ const recipes: Record<string, Recipe> = {
     framework: "Static HTML",
     packageInstall: ["npm install @uswds/uswds"],
     componentStrategy: ["Use official USWDS HTML snippets directly; React component adapters are not relevant for static-only builds."],
-    css: ['Reference a local copy of uswds.min.css from @uswds/uswds/dist/css; avoid CDN for production unless policy allows it.'],
+    css: [
+      'Link the local copy served at /uswds/css/uswds.min.css (the default asset path used by generate_uswds_page and compose_uswds_page); avoid CDN for production unless policy allows it.',
+    ],
     javascript: [
       "Load uswds-init.min.js in the head.",
       "Load uswds.min.js before the closing body tag when interactive components are present.",
     ],
-    assets: ["Copy the required dist/img, dist/fonts, and dist/js assets to the published static directory."],
-    fileStructure: ["index.html", "assets/uswds/css/", "assets/uswds/js/", "assets/uswds/img/", "assets/uswds/fonts/"],
+    assets: [
+      "Copy node_modules/@uswds/uswds/dist/{css,js,img,fonts} to public/uswds/ (e.g. cp -R node_modules/@uswds/uswds/dist/{css,js,img,fonts} public/uswds/).",
+      "Pass asset_path to the generator tools if you serve the assets from a different URL prefix.",
+    ],
+    fileStructure: ["index.html", "uswds/css/", "uswds/js/", "uswds/img/", "uswds/fonts/"],
     migrationNotes: ["Keep USWDS HTML snippets close to the official examples and validate the final page."],
     validationChecklist: commonChecklist,
   },

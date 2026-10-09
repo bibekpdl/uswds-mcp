@@ -1,11 +1,16 @@
 import { McpServer, ResourceTemplate } from "@modelcontextprotocol/sdk/server/mcp.js";
 import { z } from "zod";
+import { composePage, pageSpecSchema } from "../composer.js";
 import { generatePage, recommendStructure } from "../generator.js";
 import { getIntegrationRecipe, validateProjectUswdsSetup } from "../integration.js";
-import { searchRecords } from "../search.js";
-import { getRecord, getResourceRecord, loadIndex } from "../store.js";
+import { applyAssetPath, DEFAULT_ASSET_PATH, findSnippets, listMarkupComponents, resolveComponentName } from "../markup.js";
+import { findClasses, searchRecords } from "../search.js";
+import { getRecord, getResourceRecord, loadClassIndex, loadIndex, loadMarkup } from "../store.js";
 import { UswdsRecordType } from "../types.js";
 import { summarizeValidation, validateUswdsMarkup } from "../validator.js";
+import { version } from "../version.js";
+
+const readOnly = { readOnlyHint: true, destructiveHint: false, idempotentHint: true, openWorldHint: false } as const;
 
 const recordTypeSchema = z.enum([
   "component",
@@ -47,13 +52,14 @@ async function requireIndexedRecords() {
 export function createServer(): McpServer {
   const server = new McpServer({
     name: "uswds-mcp",
-    version: "0.1.4",
+    version,
   });
 
   server.registerTool(
     "search_uswds",
     {
       title: "Search USWDS",
+      annotations: readOnly,
       description: "Search structured USWDS docs and implementation records.",
       inputSchema: {
         query: z.string().min(1),
@@ -84,14 +90,30 @@ export function createServer(): McpServer {
     "get_component",
     {
       title: "Get USWDS Component",
-      description: "Return structured component guidance, package metadata, accessibility guidance, examples, and source links.",
+      description:
+        "Return component guidance (usage, accessibility, variants) plus the official canonical HTML for the default variant. Call this before writing any component markup.",
+      annotations: readOnly,
       inputSchema: { slug_or_name: z.string().min(1) },
     },
     async ({ slug_or_name }) => {
       const empty = await requireIndexedRecords();
       if (empty) return jsonResult(empty);
       const record = await getRecord("component", slug_or_name);
-      return jsonResult(record ?? { error: `Component not found: ${slug_or_name}` });
+      if (!record) return jsonResult({ error: `Component not found: ${slug_or_name}` });
+      const snippets = findSnippets(await loadMarkup(), record.slug);
+      const defaultSnippet = snippets.find((snippet) => snippet.variant === "default") ?? snippets[0];
+      return jsonResult({
+        ...record,
+        canonicalMarkup: defaultSnippet
+          ? {
+              note: "Official USWDS markup. Copy this structure; do not invent class names. Call get_component_markup for other variants.",
+              variant: defaultSnippet.variant,
+              html: applyAssetPath(defaultSnippet.html),
+              requiresJavascript: defaultSnippet.requiresJavascript,
+              availableVariants: snippets.map((snippet) => snippet.variant),
+            }
+          : { note: "No canonical markup indexed for this component; see docUrl." },
+      });
     }
   );
 
@@ -99,6 +121,7 @@ export function createServer(): McpServer {
     "get_pattern",
     {
       title: "Get USWDS Pattern",
+      annotations: readOnly,
       description: "Return structured pattern guidance and related implementation notes.",
       inputSchema: { slug_or_name: z.string().min(1) },
     },
@@ -114,6 +137,7 @@ export function createServer(): McpServer {
     "get_template",
     {
       title: "Get USWDS Template",
+      annotations: readOnly,
       description: "Return structured template guidance and markup references.",
       inputSchema: { slug_or_name: z.string().min(1) },
     },
@@ -129,6 +153,7 @@ export function createServer(): McpServer {
     "recommend_uswds_structure",
     {
       title: "Recommend USWDS Structure",
+      annotations: readOnly,
       description: "Recommend a USWDS-first page or site structure for an agency service.",
       inputSchema: {
         agency_type: z.string().min(1),
@@ -145,34 +170,142 @@ export function createServer(): McpServer {
     "generate_uswds_page",
     {
       title: "Generate USWDS Page",
-      description: "Generate framework-neutral USWDS HTML and framework adaptation notes.",
+      description:
+        "Quick starting point: infer sections from free-text requirements and generate a validated USWDS page with [bracketed] placeholders. For real content prefer compose_uswds_page.",
+      annotations: readOnly,
       inputSchema: {
         page_type: z.string().min(1),
         agency_context: z.string().min(1),
         content_requirements: z.string().min(1),
         framework: z.string().optional(),
+        asset_path: z.string().optional().describe(`URL prefix where USWDS dist assets are served (default ${DEFAULT_ASSET_PATH})`),
       },
     },
-    async (input) => jsonResult(generatePage(input))
+    async ({ asset_path, ...input }) => {
+      const { set } = await loadClassIndex();
+      return jsonResult(generatePage(input, { knownClasses: set, assetPath: asset_path }));
+    }
   );
 
   server.registerTool(
     "validate_uswds_markup",
     {
       title: "Validate USWDS Markup",
-      description: "Static validation for common USWDS markup, accessibility, and token-usage issues.",
+      description:
+        "Validate HTML against real USWDS class names, component structure (BEM, required children, ARIA wiring), forms, and accessibility basics. Fragment-aware. Fix every error before finalizing.",
+      annotations: readOnly,
       inputSchema: {
         html: z.string().min(1),
         page_context: z.string().optional(),
+        mode: z.enum(["auto", "document", "fragment"]).optional().describe("auto detects full pages vs fragments"),
       },
     },
-    async ({ html, page_context }) => {
-      const findings = validateUswdsMarkup(html);
+    async ({ html, page_context, mode }) => {
+      const { set } = await loadClassIndex();
+      const findings = validateUswdsMarkup(html, { knownClasses: set, mode });
+      const components = [...new Set(findings.map((finding) => finding.component).filter(Boolean))] as string[];
       return jsonResult({
         summary: summarizeValidation(findings),
         pageContext: page_context,
+        passed: !findings.some((finding) => finding.severity === "error"),
         findings,
+        howToFix: components.length
+          ? `Call get_component_markup for: ${components.join(", ")} to see the canonical structure.`
+          : undefined,
       });
+    }
+  );
+
+  server.registerTool(
+    "get_component_markup",
+    {
+      title: "Get Canonical USWDS Markup",
+      description:
+        "Return the official, verified USWDS HTML for a component or page template (rendered from the official @uswds/uswds templates). Use this instead of writing usa-* markup from memory. Call with no arguments to list everything available.",
+      annotations: readOnly,
+      inputSchema: {
+        component: z.string().optional().describe("Component or page-template name, e.g. accordion, button, footer, sign-in"),
+        variant: z.string().optional().describe("Variant such as bordered, slim, big, outline, error"),
+        all_variants: z.boolean().optional(),
+        asset_path: z.string().optional().describe(`URL prefix where USWDS dist assets are served (default ${DEFAULT_ASSET_PATH})`),
+      },
+    },
+    async ({ component, variant, all_variants, asset_path }) => {
+      const snippets = await loadMarkup();
+      if (!component) {
+        return jsonResult({
+          note: "Pass `component` to get HTML.",
+          components: listMarkupComponents(snippets),
+        });
+      }
+      const matches = findSnippets(snippets, component, variant);
+      if (matches.length === 0) {
+        const resolved = resolveComponentName(component);
+        const available = listMarkupComponents(snippets).map((entry) => entry.component);
+        const near = available.filter((name) => name.includes(resolved) || resolved.includes(name)).slice(0, 8);
+        return jsonResult({
+          error: `No canonical markup for "${component}"${variant ? ` (variant "${variant}")` : ""}.`,
+          didYouMean: near,
+          available,
+        });
+      }
+      const chosen = all_variants ? matches.slice(0, 12) : [matches.find((snippet) => snippet.variant === "default") ?? matches[0]];
+      return jsonResult({
+        component: chosen[0].component,
+        kind: chosen[0].kind,
+        snippets: chosen.map((snippet) => ({
+          variant: snippet.variant,
+          html: applyAssetPath(snippet.html, asset_path),
+          classes: snippet.classes,
+          requiresJavascript: snippet.requiresJavascript,
+          origin: snippet.origin ?? "uswds",
+          sourcePath: snippet.sourcePath,
+        })),
+        availableVariants: matches.map((snippet) => snippet.variant),
+        usage: [
+          "Keep the DOM structure, class names, ids/ARIA wiring and attribute values; replace only the text content, hrefs and ids that must be unique.",
+          "Components with requiresJavascript need uswds-init.min.js in <head> and uswds.min.js before </body>.",
+          "Text in &lt;angle brackets&gt; is placeholder content from the official fixtures.",
+        ],
+      });
+    }
+  );
+
+  server.registerTool(
+    "compose_uswds_page",
+    {
+      title: "Compose USWDS Page",
+      description:
+        "Build a complete, accessible USWDS page from structured sections (hero, content, alert, summary_box, card_group, process_list, step_indicator, accordion, table, form, contact). Output mirrors official markup and is validated automatically.",
+      annotations: readOnly,
+      inputSchema: pageSpecSchema.shape,
+    },
+    async (input) => {
+      const composed = composePage(input);
+      const { set } = await loadClassIndex();
+      const findings = validateUswdsMarkup(composed.html, { knownClasses: set });
+      return jsonResult({
+        html: composed.html,
+        placeholders: composed.placeholders,
+        assetPath: composed.assetPath,
+        validation: { summary: summarizeValidation(findings), findings },
+      });
+    }
+  );
+
+  server.registerTool(
+    "find_uswds_classes",
+    {
+      title: "Find USWDS Classes",
+      description:
+        "Look up real USWDS class names, including utilities and responsive variants (e.g. \"margin top 2\", \"tablet grid col 6\", \"bg primary lighter\"). Prevents invented class names.",
+      annotations: readOnly,
+      inputSchema: { query: z.string().min(1), limit: z.number().int().min(1).max(100).optional() },
+    },
+    async ({ query, limit }) => {
+      const { index, set } = await loadClassIndex();
+      const classes = findClasses(set, query, limit ?? 25);
+      return jsonResult({ query, uswdsVersion: index.uswdsVersion, classes, exists: set.has(query.trim()) });
     }
   );
 
@@ -180,6 +313,7 @@ export function createServer(): McpServer {
     "get_uswds_integration_recipe",
     {
       title: "Get USWDS Integration Recipe",
+      annotations: readOnly,
       description: "Return framework-specific USWDS setup guidance for npm, assets, JavaScript, CSS, and migration.",
       inputSchema: {
         framework: z.string().min(1),
@@ -194,6 +328,7 @@ export function createServer(): McpServer {
     "validate_uswds_project_setup",
     {
       title: "Validate USWDS Project Setup",
+      annotations: readOnly,
       description:
         "Check provided project files for common USWDS framework integration issues such as import paths, assets, scripts, CDN usage, and global CSS risk.",
       inputSchema: {
@@ -278,7 +413,7 @@ export function createServer(): McpServer {
           role: "user",
           content: {
             type: "text",
-            text: `Use the USWDS MCP tools to design a government website for ${agency}. Goal: ${goal}. Audience: ${audience}. Framework: ${framework ?? "framework-neutral HTML first"}. Query templates, patterns, components, generate a structure, then validate produced markup.`,
+            text: `Use the USWDS MCP tools to design a government website for ${agency}. Goal: ${goal}. Audience: ${audience}. Framework: ${framework ?? "framework-neutral HTML first"}. Workflow: recommend_uswds_structure, then get_component_markup for every component you use (never write usa-* markup from memory), assemble with compose_uswds_page, and finish with validate_uswds_markup until there are no errors.`,
           },
         },
       ],
@@ -302,7 +437,7 @@ export function createServer(): McpServer {
           role: "user",
           content: {
             type: "text",
-            text: `Build a USWDS service page for ${service}. Audience: ${audience}. Requirements: ${requirements}. Use recommend_uswds_structure, generate_uswds_page, and validate_uswds_markup before finalizing.`,
+            text: `Build a USWDS service page for ${service}. Audience: ${audience}. Requirements: ${requirements}. Use recommend_uswds_structure, get_component_markup, compose_uswds_page, and validate_uswds_markup (fix every error) before finalizing.`,
           },
         },
       ],
@@ -345,7 +480,7 @@ export function createServer(): McpServer {
           role: "user",
           content: {
             type: "text",
-            text: `Convert this page to USWDS-first markup for ${target_framework ?? "framework-neutral HTML"}. Search components and patterns before rewriting, preserve semantic content, and validate the result:\n\n${html}`,
+            text: `Convert this page to USWDS-first markup for ${target_framework ?? "framework-neutral HTML"}. Look up each target component with get_component_markup, preserve semantic content, and run validate_uswds_markup until it reports no errors:\n\n${html}`,
           },
         },
       ],

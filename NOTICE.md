@@ -19,13 +19,13 @@ USWDS is a project of the U.S. General Services Administration (GSA), Technology
 
 ## Indexed Source Snapshot
 
-The packaged USWDS index in `data/records.json` was generated from the source repositories and commits recorded in `data/manifest.json`.
+The packaged USWDS data (`data/records.json` documentation records, `data/markup.json` canonical HTML rendered from the official `@uswds/uswds` twig templates and fixtures, and `data/classes.json` class names extracted from the official stylesheet) was generated from the source repositories and commits recorded in `data/manifest.json`.
 
 At the time of the current packaged index:
 
-- `uswds-site`: `d67eac8235f117abb84f730b48ef00366519bce7`
-- `uswds`: `dcbd6cd25a3843ec5604084d556c4b1d41f544bf`
-- USWDS version: `3.13.0`
+- `uswds-site`: `69c76d6c85b3c8c322dc38e4613e43451a34a06a`
+- `uswds`: `ec801339fa287d26ef0e1b3a19291eeaa0b3b634`
+- USWDS version: `3.14.0`
 
 Run `npm run ingest` to regenerate the local index from upstream sources.
 

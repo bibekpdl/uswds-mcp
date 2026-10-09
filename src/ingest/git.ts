@@ -48,3 +48,15 @@ export async function cloneOrUpdateSources(baseDir: string): Promise<Record<stri
 
   return commits;
 }
+
+export async function readSourceCommits(baseDir: string): Promise<Record<string, string>> {
+  const commits: Record<string, string> = {};
+  for (const repo of sourceRepos) {
+    try {
+      commits[repo.name] = await run("git", ["-C", path.join(baseDir, repo.name), "rev-parse", "HEAD"]);
+    } catch {
+      // source not cloned yet
+    }
+  }
+  return commits;
+}

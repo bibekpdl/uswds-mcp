@@ -1,8 +1,9 @@
 import { readFile } from "node:fs/promises";
 import { existsSync } from "node:fs";
-import { manifestPath, packagedRecordsPath, recordsPath } from "./paths.js";
-import { IndexBundle, Manifest, UswdsRecord, UswdsRecordType } from "./types.js";
+import { classesPath, manifestPath, markupPath, packagedRecordsPath, recordsPath } from "./paths.js";
+import { ClassIndex, IndexBundle, Manifest, MarkupSnippet, UswdsRecord, UswdsRecordType } from "./types.js";
 import { slugify } from "./text.js";
+import { curatedSnippets } from "./foundations.js";
 
 let cached: IndexBundle | undefined;
 
@@ -30,8 +31,30 @@ export async function loadIndex(): Promise<IndexBundle> {
   return cached;
 }
 
+let cachedMarkup: MarkupSnippet[] | undefined;
+let cachedClasses: { index: ClassIndex; set: Set<string> } | undefined;
+
+export async function loadMarkup(): Promise<MarkupSnippet[]> {
+  if (cachedMarkup) return cachedMarkup;
+  const generated = existsSync(markupPath) ? (JSON.parse(await readFile(markupPath, "utf8")) as MarkupSnippet[]) : [];
+  const taken = new Set(generated.map((snippet) => snippet.id));
+  cachedMarkup = [...generated, ...curatedSnippets.filter((snippet) => !taken.has(snippet.id))];
+  return cachedMarkup;
+}
+
+export async function loadClassIndex(): Promise<{ index: ClassIndex; set: Set<string> }> {
+  if (cachedClasses) return cachedClasses;
+  const index: ClassIndex = existsSync(classesPath)
+    ? (JSON.parse(await readFile(classesPath, "utf8")) as ClassIndex)
+    : { classes: [] };
+  cachedClasses = { index, set: new Set(index.classes) };
+  return cachedClasses;
+}
+
 export function resetIndexCache(): void {
   cached = undefined;
+  cachedMarkup = undefined;
+  cachedClasses = undefined;
 }
 
 export async function getRecord(type: UswdsRecordType, slugOrName: string): Promise<UswdsRecord | undefined> {
