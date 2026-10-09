@@ -1,8 +1,10 @@
 import { mkdir, readFile, writeFile } from "node:fs/promises";
 import path from "node:path";
-import { dataDir, indexDir, manifestPath, packagedRecordsPath, recordsPath, sourceDir } from "../paths.js";
+import { classesPath, dataDir, fromRoot, indexDir, manifestPath, markupPath, packagedRecordsPath, recordsPath, sourceDir } from "../paths.js";
 import { IndexBundle, Manifest, UswdsRecord } from "../types.js";
-import { cloneOrUpdateSources, sourceRepos } from "./git.js";
+import { extractClassesFromCss } from "../classes.js";
+import { buildMarkupSnippets } from "./markup.js";
+import { cloneOrUpdateSources, readSourceCommits, sourceRepos } from "./git.js";
 import { mergePackageInfo, parsePackageRecords, parseSiteRecords } from "./parser.js";
 
 function countByType(records: UswdsRecord[]): Record<string, number> {
@@ -25,7 +27,7 @@ export async function buildIndex(options: { updateSources?: boolean } = {}): Pro
   await mkdir(indexDir, { recursive: true });
   await mkdir(dataDir, { recursive: true });
 
-  const commits = options.updateSources === false ? {} : await cloneOrUpdateSources(sourceDir);
+  const commits = options.updateSources === false ? await readSourceCommits(sourceDir) : await cloneOrUpdateSources(sourceDir);
   const siteRoot = path.join(sourceDir, "uswds-site");
   const uswdsRoot = path.join(sourceDir, "uswds");
 
@@ -34,6 +36,12 @@ export async function buildIndex(options: { updateSources?: boolean } = {}): Pro
     parsePackageRecords(uswdsRoot),
     readPackageVersion(uswdsRoot),
   ]);
+  const npmRoot = fromRoot("node_modules", "@uswds", "uswds");
+  const npmVersion = await readPackageVersion(npmRoot);
+  const snippets = await buildMarkupSnippets(npmRoot);
+  const css = await readFile(path.join(npmRoot, "dist", "css", "uswds.css"), "utf8");
+  // Official markup also uses structural hook classes that have no CSS rule of their own.
+  const classes = [...new Set([...extractClassesFromCss(css), ...snippets.flatMap((snippet) => snippet.classes)])].sort();
   const records = mergePackageInfo([...siteRecords, ...packageRecords]).sort((a, b) => a.id.localeCompare(b.id));
 
   const manifest: Manifest = {
@@ -44,17 +52,20 @@ export async function buildIndex(options: { updateSources?: boolean } = {}): Pro
       commit: commits[repo.name],
       version: repo.name === "uswds" ? uswdsVersion : undefined,
     })),
-    recordCounts: countByType(records),
+    recordCounts: { ...countByType(records), markup_snippet: snippets.length, css_class: classes.length },
+    markupSource: { package: "@uswds/uswds", version: npmVersion },
   };
 
   await writeFile(recordsPath, JSON.stringify(records, null, 2));
   await writeFile(packagedRecordsPath, JSON.stringify(records, null, 2));
+  await writeFile(markupPath, JSON.stringify(snippets, null, 1));
+  await writeFile(classesPath, JSON.stringify({ uswdsVersion: npmVersion, classes }));
   await writeFile(manifestPath, JSON.stringify(manifest, null, 2));
   return { records, manifest };
 }
 
 if (import.meta.url === `file://${process.argv[1]}`) {
-  buildIndex()
+  buildIndex({ updateSources: !process.argv.includes("--offline") })
     .then(({ records, manifest }) => {
       process.stderr.write(`Indexed ${records.length} USWDS records at ${manifest.generatedAt}\n`);
     })

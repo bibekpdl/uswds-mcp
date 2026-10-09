@@ -1,7 +1,7 @@
 {
   "name": "uswds-mcp",
-  "version": "0.1.4",
-  "description": "Unofficial Model Context Protocol server for working with U.S. Web Design System components, patterns, templates, tokens, and accessibility guidance.",
+  "version": "0.2.0",
+  "description": "Unofficial MCP server that makes AI-generated USWDS code compliant: official component markup, a USWDS class-level validator, an accessible page composer, and integration recipes.",
   "type": "module",
   "license": "MIT",
   "author": "Bibek Poudel",
@@ -17,7 +17,14 @@
     "federal-websites",
     "accessibility",
     "section-508",
-    "design-system"
+    "design-system",
+    "usa-classes",
+    "html-validator",
+    "accessibility-testing",
+    "ai-coding",
+    "claude",
+    "cursor",
+    "wcag"
   ],
   "repository": {
     "type": "git",
@@ -33,7 +40,6 @@
   "files": [
     "dist/src/**/*.js",
     "!dist/src/**/*.test.js",
-    "data/*.json",
     ".agents/skills/uswds/SKILL.md",
     "docs/*.md",
     "examples/**/*.json",
@@ -41,7 +47,10 @@
     "server.json",
     "README.md",
     "NOTICE.md",
-    "LICENSE"
+    "LICENSE",
+    "data/*.json",
+    "!dist/src/testing.js",
+    "!dist/src/eval/**"
   ],
   "scripts": {
     "build": "tsc -p tsconfig.json",
@@ -49,19 +58,26 @@
     "ingest": "npm run build --silent && node dist/src/ingest/indexer.js",
     "test": "vitest run",
     "typecheck": "tsc -p tsconfig.json --noEmit",
-    "prepack": "npm run build"
+    "prepack": "npm run build",
+    "eval": "npm run build --silent && node dist/src/eval/run.js",
+    "ingest:offline": "npm run build --silent && node dist/src/ingest/indexer.js --offline"
   },
   "dependencies": {
     "@modelcontextprotocol/sdk": "^1.18.2",
-    "@uswds/uswds": "^3.13.0",
+    "@uswds/uswds": "^3.14.0",
     "cheerio": "^1.0.0",
     "fast-glob": "^3.3.3",
     "gray-matter": "^4.0.3",
     "zod": "^3.25.76"
   },
   "devDependencies": {
+    "@types/jsdom": "^30.0.0",
     "@types/node": "^22.10.5",
+    "@types/twig": "^1.12.17",
+    "axe-core": "^4.14.0",
+    "jsdom": "^29.1.1",
     "tsx": "^4.19.2",
+    "twig": "^3.0.0",
     "typescript": "^5.7.3",
     "vitest": "^4.1.7"
   },

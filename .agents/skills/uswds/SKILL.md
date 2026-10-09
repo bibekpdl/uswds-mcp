@@ -9,26 +9,25 @@ Use this skill when creating, auditing, or converting websites with the U.S. Web
 
 ## Workflow
 
-1. Verify the MCP server `io.github.bibekpdl/uswds-mcp` is available by calling `search_uswds` with a small query such as `button`.
-2. If tools return an empty-index error, tell the user to run `npm run ingest` in the package checkout or reinstall a package that includes `data/records.json`.
-3. Query the USWDS MCP before choosing UI patterns.
-4. Prefer official templates and patterns before composing individual components.
-5. Use official USWDS HTML structure and classes as the canonical output.
-6. For framework work, call `get_uswds_integration_recipe` before writing code.
-7. Adapt to React, Next.js, Angular, Rails, Drupal, or other frameworks only after preserving the documented USWDS DOM shape, classes, ARIA, ids, and data attributes.
-8. Validate generated markup with `validate_uswds_markup` and validate project setup with `validate_uswds_project_setup` before finalizing.
+1. Verify the MCP server `io.github.bibekpdl/uswds-mcp` is available by calling `find_uswds_classes` with a small query such as `usa-button`.
+2. Decide structure: `recommend_uswds_structure`, and prefer official templates and patterns (`get_template`, `get_pattern`) before composing individual components.
+3. **Never write `usa-*` markup from memory.** For every component you use, call `get_component_markup` and keep its DOM structure, class names, ids and ARIA wiring. Change only text, hrefs and ids that must be unique. Use `find_uswds_classes` for utilities (`margin top 2`, `tablet grid col 6`).
+4. For whole pages call `compose_uswds_page` with real content in explicit sections. Use `generate_uswds_page` only as a quick start, and replace every `[bracketed]` placeholder.
+5. For framework work, call `get_uswds_integration_recipe` before writing code; adapt to React, Next.js, Angular, Rails, Drupal only after preserving the documented DOM shape, classes, ARIA, ids and data attributes.
+6. Run `validate_uswds_markup` and **fix every error** (and explain any remaining warning) before finalizing. Re-run until `passed` is true. Validate project setup with `validate_uswds_project_setup`.
 
 ## MCP Tools
 
-- `search_uswds`: Search components, patterns, templates, utilities, tokens, settings, packages, and accessibility guidance.
-- `get_component`: Load full component guidance before using a component.
-- `get_pattern`: Load pattern guidance for workflows such as forms, authentication, language selection, and navigation.
-- `get_template`: Load page/template guidance for common layouts.
-- `recommend_uswds_structure`: Get a USWDS-first site or page structure.
-- `generate_uswds_page`: Generate framework-neutral USWDS HTML and adaptation notes.
-- `validate_uswds_markup`: Check markup for common USWDS structure, accessibility, and token drift issues.
-- `get_uswds_integration_recipe`: Get framework-specific setup guidance for CSS, JavaScript, assets, and migration.
-- `validate_uswds_project_setup`: Check project files for import path, asset, script, CDN, and global CSS risks.
+- `get_component_markup`: official HTML for a component/page template and its variants.
+- `compose_uswds_page`: complete accessible page from structured sections.
+- `find_uswds_classes`: real USWDS class names, including utilities.
+- `validate_uswds_markup`: real-class, structure, forms, ARIA and accessibility validation (fragment or page).
+- `generate_uswds_page`: quick-start page from free-text requirements.
+- `recommend_uswds_structure`: USWDS-first site or page structure.
+- `search_uswds`: search docs, accessibility and usage guidance.
+- `get_component` / `get_pattern` / `get_template`: structured guidance (components include canonical markup).
+- `get_uswds_integration_recipe`: framework-specific setup for CSS, JavaScript, assets and migration.
+- `validate_uswds_project_setup`: import path, asset, script, CDN and global CSS risks.
 
 ## Implementation Rules
 
@@ -58,5 +57,5 @@ Use this skill when creating, auditing, or converting websites with the U.S. Web
 - Keep generated pages task-focused and content-led.
 - Avoid generic SaaS visual language when building government services.
 - Surface accessibility caveats and remaining validation steps clearly.
-- Do not finalize generated markup until the MCP validator reports no errors; if warnings remain, explain why they are acceptable or what the user should fix.
+- Do not finalize generated markup until `validate_uswds_markup` returns `passed: true`; if warnings remain, explain why they are acceptable or what the user should fix.
 - For framework implementations, include the package import path, asset strategy, and JavaScript loading strategy in the final notes.

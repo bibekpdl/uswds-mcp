@@ -21,6 +21,8 @@ export const indexDir = path.join(cacheDir, "index");
 export const dataDir = path.join(repoRoot, "data");
 export const manifestPath = path.join(dataDir, "manifest.json");
 export const packagedRecordsPath = path.join(dataDir, "records.json");
+export const markupPath = path.join(dataDir, "markup.json");
+export const classesPath = path.join(dataDir, "classes.json");
 export const recordsPath = path.join(indexDir, "records.json");
 
 export function fromRoot(...parts: string[]): string {

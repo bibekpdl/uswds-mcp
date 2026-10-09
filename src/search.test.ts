@@ -37,3 +37,27 @@ describe("searchRecords", () => {
     expect(results[0].record.type).toBe("template");
   });
 });
+
+import { findClasses } from "./search.js";
+import { knownClasses } from "./testing.js";
+
+describe("synonym expansion", () => {
+  const docs: UswdsRecord[] = [
+    { id: "component:select", type: "component", slug: "select", title: "Select", summary: "Dropdown list of options.", body: "A select lets users choose one option.", sections: [] },
+    { id: "component:card", type: "component", slug: "card", title: "Card", summary: "Cards contain content.", body: "Card groups.", sections: [] },
+  ];
+  it("maps everyday words to USWDS vocabulary", () => {
+    expect(searchRecords(docs, "tiles")[0].record.slug).toBe("card");
+    expect(searchRecords(docs, "dropdown menu")[0].record.slug).toBe("select");
+  });
+});
+
+describe("findClasses", () => {
+  it("resolves utility phrases to real class names", () => {
+    expect(findClasses(knownClasses, "margin top 2")).toContain("margin-top-2");
+    expect(findClasses(knownClasses, "tablet grid col 6")).toContain("tablet:grid-col-6");
+  });
+  it("returns exact matches first", () => {
+    expect(findClasses(knownClasses, "usa-button--big")[0]).toBe("usa-button--big");
+  });
+});

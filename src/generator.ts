@@ -1,3 +1,6 @@
+import { composePage, PageSpec, Section } from "./composer.js";
+import { summarizeValidation, validateUswdsMarkup } from "./validator.js";
+
 export interface StructureRecommendationInput {
   agency_type: string;
   service_goal: string;
@@ -11,15 +14,6 @@ export interface PageGenerationInput {
   agency_context: string;
   content_requirements: string;
   framework?: string;
-}
-
-function escapeHtml(value: string): string {
-  return value
-    .replace(/&/g, "&amp;")
-    .replace(/</g, "&lt;")
-    .replace(/>/g, "&gt;")
-    .replace(/"/g, "&quot;")
-    .replace(/'/g, "&#39;");
 }
 
 export function frameworkNotes(framework?: string): string[] {
@@ -47,18 +41,22 @@ export function frameworkNotes(framework?: string): string[] {
   return [...base, `For ${framework}, adapt templates without replacing USWDS classes or accessibility attributes.`];
 }
 
+const formIntent = /\b(form|apply|application|register|registration|sign[- ]?up|enrol(?:l|lment)|claim|submit|request|intake|questionnaire)\b/i;
+const docsIntent = /\b(document|policy|guidance|manual|standard|resource|handbook|regulation)\b/i;
+
 export function recommendStructure(input: StructureRecommendationInput) {
-  const isForm = /form|apply|application|register|claim|benefit|permit|renew/i.test(input.service_goal);
-  const isDocs = /document|policy|guidance|manual|standard|resource/i.test(input.service_goal);
+  const isForm = formIntent.test(input.service_goal);
+  const isDocs = docsIntent.test(input.service_goal);
   const primaryTemplate = isForm ? "Form templates" : isDocs ? "Documentation template" : "Landing page or service page template";
   const components = [
     "skipnav",
     "official government banner",
     "header",
     "footer",
+    "identifier",
     "layout grid",
-    isForm ? "form, fieldset, legend, label, input, button, validation, alert" : "card, collection, summary box, button",
-    isDocs ? "sidenav, table, process list" : "identifier when required by site policy",
+    isForm ? "form, fieldset, legend, label, input, button, step indicator, validation, alert" : "card, collection, summary box, process list, button",
+    isDocs ? "sidenav, in-page navigation, table, breadcrumb" : "accordion for FAQs, table for fees or schedules",
   ];
 
   return {
@@ -72,9 +70,10 @@ export function recommendStructure(input: StructureRecommendationInput) {
       "Official government banner",
       "Header with clear agency/service navigation",
       "Main region with one h1 describing the user task",
-      isForm ? "Vertical form sections using fieldset and legend for related controls" : "Task-focused content sections using grid and cards/collections",
+      isForm ? "Step indicator (multi-step) and vertical form sections using fieldset and legend for related controls" : "Task-focused content sections using grid and cards/process list/summary box",
       "Contextual alerts only for actionable status or warnings",
       "Footer with required agency/service links",
+      "Identifier with required agency links",
     ],
     accessibilityNotes: [
       "Use semantic heading order and a single h1.",
@@ -82,144 +81,157 @@ export function recommendStructure(input: StructureRecommendationInput) {
       "Use labels for all controls and legends for grouped form questions.",
       "Validate the final implementation in the project context; USWDS component status does not guarantee full Section 508 compliance.",
     ],
+    nextSteps: [
+      "Call get_component_markup for each component above to get the official HTML.",
+      "Call compose_uswds_page with real content (preferred) or generate_uswds_page for a starting point.",
+      "Run validate_uswds_markup on the final HTML and fix every error.",
+    ],
     implementationNotes: frameworkNotes(input.framework),
     constraints: input.constraints,
   };
 }
 
-export function generatePage(input: PageGenerationInput) {
-  const isForm = /form|apply|application|register|claim|benefit|permit|renew/i.test(
-    `${input.page_type} ${input.content_requirements}`
-  );
-  const title = escapeHtml(input.page_type || "Service page");
-  const agencyContext = escapeHtml(input.agency_context || "Agency");
-  const contentRequirements = escapeHtml(input.content_requirements || "");
-  const formSection = isForm
-    ? `<form class="usa-form usa-form--large">
-  <fieldset class="usa-fieldset">
-    <legend class="usa-legend usa-legend--large">Applicant information</legend>
-    <p>A red asterisk (<abbr title="required" class="usa-hint usa-hint--required">*</abbr>) indicates a required field.</p>
-    <label class="usa-label" for="full-name">Full name <abbr title="required" class="usa-hint usa-hint--required">*</abbr></label>
-    <input class="usa-input" id="full-name" name="full-name" type="text" required />
-    <label class="usa-label" for="email">Email <abbr title="required" class="usa-hint usa-hint--required">*</abbr></label>
-    <input class="usa-input" id="email" name="email" type="email" autocomplete="email" required />
-  </fieldset>
-  <button class="usa-button" type="submit">Continue</button>
-</form>`
-    : `<div class="grid-row grid-gap">
-  <div class="tablet:grid-col-8">
-    <p class="usa-intro">${contentRequirements}</p>
-    <a class="usa-button" href="#next-step">Start now</a>
-  </div>
-  <aside class="tablet:grid-col-4">
-    <div class="usa-summary-box" role="region" aria-labelledby="summary-box-key-info">
-      <div class="usa-summary-box__body">
-        <h2 class="usa-summary-box__heading" id="summary-box-key-info">Key information</h2>
-        <div class="usa-summary-box__text">Use this section for eligibility, deadlines, or required documents.</div>
-      </div>
-    </div>
-  </aside>
-</div>`;
+function splitRequirements(text: string): string[] {
+  return text
+    .split(/[\n;]+|,\s*(?![^()]*\))|\band\b/gi)
+    .map((part) => part.trim().replace(/^[-*•\d.\s]+/, ""))
+    .filter((part) => part.length > 2);
+}
 
-  const html = `<!doctype html>
-<html lang="en">
-  <head>
-    <meta charset="utf-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>${title}</title>
-    <script src="/assets/uswds/dist/js/uswds-init.min.js"></script>
-    <link rel="stylesheet" href="/assets/uswds/dist/css/uswds.min.css" />
-  </head>
-  <body>
-    <a class="usa-skipnav" href="#main-content">Skip to main content</a>
-    <section class="usa-banner" aria-label="Official website of the United States government">
-      <div class="usa-accordion">
-        <header class="usa-banner__header">
-          <div class="usa-banner__inner">
-            <div class="grid-col-auto">
-              <img class="usa-banner__header-flag" src="/assets/uswds/dist/img/us_flag_small.png" alt="" aria-hidden="true" />
-            </div>
-            <div class="grid-col-fill tablet:grid-col-auto" aria-hidden="true">
-              <p class="usa-banner__header-text">An official website of the United States government</p>
-              <p class="usa-banner__header-action">Here’s how you know</p>
-            </div>
-            <button type="button" class="usa-accordion__button usa-banner__button" aria-expanded="false" aria-controls="gov-banner">
-              <span class="usa-banner__button-text">Here’s how you know</span>
-            </button>
-          </div>
-        </header>
-        <div class="usa-banner__content usa-accordion__content" id="gov-banner">
-          <div class="grid-row grid-gap-lg">
-            <div class="usa-banner__guidance tablet:grid-col-6">
-              <img class="usa-banner__icon usa-media-block__img" src="/assets/uswds/dist/img/icon-dot-gov.svg" alt="" aria-hidden="true" />
-              <div class="usa-media-block__body">
-                <p><strong>Official websites use .gov</strong><br />A .gov website belongs to an official government organization in the United States.</p>
-              </div>
-            </div>
-            <div class="usa-banner__guidance tablet:grid-col-6">
-              <img class="usa-banner__icon usa-media-block__img" src="/assets/uswds/dist/img/icon-https.svg" alt="" aria-hidden="true" />
-              <div class="usa-media-block__body">
-                <p><strong>Secure .gov websites use HTTPS</strong><br />A lock or https:// means you’ve safely connected to the .gov website.</p>
-              </div>
-            </div>
-          </div>
-        </div>
-      </div>
-    </section>
-    <header class="usa-header usa-header--basic">
-      <div class="usa-nav-container">
-        <div class="usa-navbar">
-          <div class="usa-logo">
-            <em class="usa-logo__text"><a href="/" title="${agencyContext}">${agencyContext}</a></em>
-          </div>
-          <button type="button" class="usa-menu-btn">Menu</button>
-        </div>
-        <nav aria-label="Primary navigation" class="usa-nav">
-          <button type="button" class="usa-nav__close">
-            <img src="/assets/uswds/dist/img/usa-icons/close.svg" role="img" alt="Close" />
-          </button>
-          <ul class="usa-nav__primary usa-accordion">
-            <li class="usa-nav__primary-item"><a href="#main-content" class="usa-nav__link usa-current"><span>Home</span></a></li>
-            <li class="usa-nav__primary-item"><a href="#next-step" class="usa-nav__link"><span>Start</span></a></li>
-          </ul>
-        </nav>
-      </div>
-    </header>
-    <main id="main-content" class="grid-container usa-section">
-      <h1>${title}</h1>
-      ${formSection}
-    </main>
-    <footer class="usa-footer">
-      <div class="grid-container usa-footer__return-to-top"><a href="#">Return to top</a></div>
-      <div class="usa-footer__primary-section">
-        <nav class="usa-footer__nav" aria-label="Footer navigation">
-          <ul class="grid-row grid-gap">
-            <li class="mobile-lg:grid-col-4 usa-footer__primary-content"><a class="usa-footer__primary-link" href="#main-content">Overview</a></li>
-            <li class="mobile-lg:grid-col-4 usa-footer__primary-content"><a class="usa-footer__primary-link" href="#next-step">Start</a></li>
-            <li class="mobile-lg:grid-col-4 usa-footer__primary-content"><a class="usa-footer__primary-link" href="/">Agency home</a></li>
-          </ul>
-        </nav>
-      </div>
-      <div class="usa-footer__secondary-section">
-        <div class="grid-container">
-          <div class="usa-footer__logo grid-row grid-gap-2">
-            <div class="grid-col-auto">
-              <p class="usa-footer__logo-heading">${agencyContext}</p>
-            </div>
-          </div>
-        </div>
-      </div>
-    </footer>
-    <script src="/assets/uswds/dist/js/uswds.min.js"></script>
-  </body>
-</html>`;
+function titleCase(value: string): string {
+  const trimmed = value.trim().replace(/[.:]+$/, "");
+  return trimmed.charAt(0).toUpperCase() + trimmed.slice(1);
+}
+
+/** Map free-text requirements to structured sections. Unknown content stays visibly placeholder. */
+export function inferSections(input: PageGenerationInput): { sections: Section[]; notes: string[] } {
+  const sections: Section[] = [];
+  const notes: string[] = [];
+  const parts = splitRequirements(input.content_requirements);
+  const wantsForm = formIntent.test(input.page_type) || parts.some((part) => formIntent.test(part));
+  const intro = parts.find((part) => !/(fee|cost|price|step|process|faq|question|contact|phone|eligib|requirement|deadline|alert|notice|warning|card|link|form|apply)/i.test(part));
+
+  sections.push({
+    type: "content",
+    paragraphs: [intro ? titleCase(intro) + "." : `[Introduce ${input.page_type} in one or two plain-language sentences.]`],
+  });
+
+  const used = new Set<string>();
+  const add = (kind: string, section: Section) => {
+    if (used.has(kind)) return;
+    used.add(kind);
+    sections.push(section);
+  };
+
+  for (const part of parts) {
+    if (/(alert|notice|warning|outage|maintenance|emergency)/i.test(part)) {
+      add("alert", { type: "alert", variant: /emergency|outage/i.test(part) ? "emergency" : "warning", text: `[${titleCase(part)}: write the notice text.]` });
+    }
+    if (/(eligib|requirement|deadline|document|bring|need)/i.test(part)) {
+      add("summary", { type: "summary_box", heading: "Key information", items: [`[${titleCase(part)}]`, "[Add deadlines, eligibility, or required documents.]"] });
+    }
+    if (/(fee|cost|price|rate|schedule|timeline)/i.test(part)) {
+      add("table", {
+        type: "table",
+        heading: titleCase(part),
+        caption: titleCase(part),
+        headers: ["Item", "Details", "Amount"],
+        rows: [["[Item]", "[Details]", "[Amount]"]],
+        striped: true,
+      });
+    }
+    if (/(step|process|how to|procedure|stages?)/i.test(part)) {
+      add("process", {
+        type: "process_list",
+        heading: "How it works",
+        steps: [
+          { heading: "[First step]", text: "[Describe what the person does first.]" },
+          { heading: "[Second step]", text: "[Describe what happens next.]" },
+          { heading: "[Final step]", text: "[Describe the outcome.]" },
+        ],
+      });
+    }
+    if (/(faq|question|answers?)/i.test(part)) {
+      add("faq", {
+        type: "accordion",
+        heading: "Frequently asked questions",
+        items: [
+          { title: "[Question 1]", content: "[Answer 1]" },
+          { title: "[Question 2]", content: "[Answer 2]" },
+        ],
+      });
+    }
+    if (/(card|resources?|related|links?|programs?|services?)/i.test(part)) {
+      add("cards", {
+        type: "card_group",
+        heading: "Related services",
+        cards: [
+          { heading: "[Service one]", text: "[Short description.]", link: { label: "[Action label]", href: "#" } },
+          { heading: "[Service two]", text: "[Short description.]", link: { label: "[Action label]", href: "#" } },
+          { heading: "[Service three]", text: "[Short description.]", link: { label: "[Action label]", href: "#" } },
+        ],
+      });
+    }
+    if (/(contact|phone|email|support|help|hours)/i.test(part)) {
+      add("contact", { type: "contact", heading: "Contact us", lines: ["[Phone number and hours]", "[Email address]"] });
+    }
+  }
+
+  if (wantsForm) {
+    add("form", {
+      type: "form",
+      legend: titleCase(input.page_type),
+      fields: [
+        { type: "text", label: "Full name", required: true },
+        { type: "email", label: "Email address", required: true, hint: "We use this only to send updates about your request." },
+      ],
+      submit_label: "Continue",
+    });
+    notes.push("Form fields are a minimal starting set; replace them with the real questions (one question per field, labels in plain language).");
+  }
+  if (!wantsForm && used.size === 0) {
+    sections.push({
+      type: "card_group",
+      heading: "Get started",
+      cards: [{ heading: "[Primary task]", text: "[Describe the main task users come here to complete.]", link: { label: "[Start]", href: "#" } }],
+    });
+    notes.push("No specific components could be inferred from the requirements; call compose_uswds_page with explicit sections for better results.");
+  }
+  return { sections, notes };
+}
+
+export interface GenerationOptions {
+  knownClasses?: Set<string>;
+  assetPath?: string;
+}
+
+export function generatePage(input: PageGenerationInput, options: GenerationOptions = {}) {
+  const { sections, notes } = inferSections(input);
+  const spec: PageSpec = {
+    title: titleCase(input.page_type || "Service page"),
+    agency: input.agency_context || "Agency",
+    asset_path: options.assetPath,
+    sections,
+  };
+  const composed = composePage(spec);
+  const findings = validateUswdsMarkup(composed.html, { knownClasses: options.knownClasses });
 
   return {
-    html,
-    implementationNotes: frameworkNotes(input.framework),
-    accessibilityNotes: [
-      "Review banner, header, and footer links against the agency's information architecture before production.",
-      "Run project-specific accessibility tests after adding real content and routes.",
+    html: composed.html,
+    spec,
+    placeholders: composed.placeholders,
+    validation: { summary: summarizeValidation(findings), findings },
+    assetPath: composed.assetPath,
+    implementationNotes: [
+      ...frameworkNotes(input.framework),
+      `Serve the USWDS dist assets from ${composed.assetPath}/ (css/, js/, img/, fonts/); see get_uswds_integration_recipe.`,
     ],
+    accessibilityNotes: [
+      "Replace every [bracketed] placeholder with real content before publishing.",
+      "Review banner, header, footer, and identifier links against the agency's information architecture.",
+      "Run project-specific accessibility tests (axe, manual keyboard and screen reader checks) after adding real content and routes.",
+      ...notes,
+    ],
+    nextStep: "For fully custom pages call compose_uswds_page with explicit sections and real content, then validate_uswds_markup.",
   };
 }

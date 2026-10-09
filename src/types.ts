@@ -71,9 +71,33 @@ export interface Manifest {
     version?: string;
   }>;
   recordCounts: Record<string, number>;
+  markupSource?: { package: string; version?: string };
 }
 
 export interface IndexBundle {
   records: UswdsRecord[];
   manifest: Manifest;
+}
+
+/** Canonical HTML rendered from the official USWDS twig templates and JSON fixtures. */
+export interface MarkupSnippet {
+  id: string;
+  kind: "component" | "page-template";
+  /** Component slug, e.g. `accordion`, `footer`, or a page template such as `sign-in`. */
+  component: string;
+  /** `default`, or modifiers such as `bordered`, `slim`, `big+outline`. */
+  variant: string;
+  package?: string;
+  /** HTML with `{{USWDS_ASSET_PATH}}` where the USWDS dist asset root belongs. */
+  html: string;
+  classes: string[];
+  requiresJavascript: boolean;
+  sourcePath: string;
+  /** `uswds` = rendered from the official package; `curated` = hand-maintained, tested against the USWDS class list. */
+  origin?: "uswds" | "curated";
+}
+
+export interface ClassIndex {
+  uswdsVersion?: string;
+  classes: string[];
 }
