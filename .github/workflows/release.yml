@@ -39,7 +39,23 @@ jobs:
       - run: npm audit --omit=dev --audit-level=high
       - run: npm run typecheck
       - run: npm test
-      - run: npm publish --provenance --access public
+      - name: Publish to npm
+        run: |
+          # Skip when re-running a release whose npm publish already succeeded.
+          if npm view "uswds-mcp@${GITHUB_REF_NAME#v}" version >/dev/null 2>&1; then
+            echo "uswds-mcp@${GITHUB_REF_NAME#v} is already on npm"
+          else
+            npm publish --provenance --access public
+          fi
+      - name: Wait for the version to appear on npm
+        run: |
+          # The MCP registry checks npm, which can take a few minutes to list a new version.
+          for _ in $(seq 1 40); do
+            npm view "uswds-mcp@${GITHUB_REF_NAME#v}" version >/dev/null 2>&1 && exit 0
+            sleep 15
+          done
+          echo "uswds-mcp@${GITHUB_REF_NAME#v} did not appear on npm in time" >&2
+          exit 1
       - name: Publish to the MCP registry
         run: |
           curl -fsSL "https://github.com/modelcontextprotocol/registry/releases/latest/download/mcp-publisher_linux_amd64.tar.gz" | tar xz mcp-publisher
