@@ -23,7 +23,7 @@ jobs:
       - run: npm install @uswds/uswds@latest
       - run: npm run ingest
       - run: npm test
-      - uses: peter-evans/create-pull-request@v7
+      - uses: peter-evans/create-pull-request@v8
         with:
           branch: chore/refresh-uswds-data
           commit-message: "chore: refresh USWDS index"
