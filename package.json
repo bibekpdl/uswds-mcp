@@ -1,6 +1,6 @@
 {
   "name": "uswds-mcp",
-  "version": "0.2.0",
+  "version": "0.2.1",
   "description": "Unofficial MCP server that makes AI-generated USWDS code compliant: official component markup, a USWDS class-level validator, an accessible page composer, and integration recipes.",
   "type": "module",
   "license": "MIT",
@@ -46,6 +46,7 @@
     "examples/**/*.md",
     "server.json",
     "README.md",
+    "SECURITY.md",
     "NOTICE.md",
     "LICENSE",
     "data/*.json",
@@ -63,12 +64,12 @@
     "ingest:offline": "npm run build --silent && node dist/src/ingest/indexer.js --offline"
   },
   "dependencies": {
-    "@modelcontextprotocol/sdk": "^1.18.2",
+    "@modelcontextprotocol/sdk": "^1.32.2",
     "@uswds/uswds": "^3.14.0",
     "cheerio": "^1.0.0",
     "fast-glob": "^3.3.3",
     "gray-matter": "^4.0.3",
-    "zod": "^3.25.76"
+    "zod": "^4.6.7"
   },
   "devDependencies": {
     "@types/jsdom": "^30.0.0",
@@ -76,12 +77,12 @@
     "@types/twig": "^1.12.17",
     "axe-core": "^4.14.0",
     "jsdom": "^29.1.1",
-    "tsx": "^4.19.2",
+    "tsx": "^4.23.15",
     "twig": "^3.0.0",
     "typescript": "^5.7.3",
-    "vitest": "^4.1.7"
+    "vitest": "^4.1.12"
   },
   "engines": {
-    "node": ">=18"
+    "node": ">=20.18.1"
   }
 }

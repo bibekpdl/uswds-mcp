@@ -1,0 +1,47 @@
+name: Release
+
+# Publishes to npm with build provenance and to the MCP registry when a v* tag is pushed.
+# npm side: configure this repo + workflow as a Trusted Publisher at
+# https://www.npmjs.com/package/uswds-mcp/access (no NPM_TOKEN needed).
+on:
+  push:
+    tags: ["v*"]
+
+permissions:
+  contents: read
+  id-token: write
+
+jobs:
+  publish:
+    runs-on: ubuntu-latest
+    environment: release
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+          registry-url: https://registry.npmjs.org
+          cache: npm
+      - name: Check tag matches package.json and server.json
+        run: |
+          tag="${GITHUB_REF_NAME#v}"
+          node -e '
+            const tag = process.argv[1];
+            const pkg = require("./package.json");
+            const srv = require("./server.json");
+            const versions = [pkg.version, srv.version, ...srv.packages.map((p) => p.version)];
+            if (versions.some((v) => v !== tag)) {
+              console.error(`Tag v${tag} does not match versions ${versions.join(", ")}`);
+              process.exit(1);
+            }
+          ' "$tag"
+      - run: npm ci
+      - run: npm audit --omit=dev --audit-level=high
+      - run: npm run typecheck
+      - run: npm test
+      - run: npm publish --provenance --access public
+      - name: Publish to the MCP registry
+        run: |
+          curl -fsSL "https://github.com/modelcontextprotocol/registry/releases/latest/download/mcp-publisher_linux_amd64.tar.gz" | tar xz mcp-publisher
+          ./mcp-publisher login github-oidc
+          ./mcp-publisher publish

@@ -1,5 +1,15 @@
 # Changelog
 
+## 0.2.1
+
+### Security
+- Upgraded `@modelcontextprotocol/sdk` to 1.32.2 and `zod` to 4.x, and refreshed the lockfile; `npm audit` now reports 0 vulnerabilities (previously 1 critical and 12 high, including GHSA-mrhx-c7xc-m3w5 in zod and several SDK advisories).
+- Added `SECURITY.md` with a private reporting channel.
+- Releases are now published from GitHub Actions with npm build provenance.
+
+### Changed
+- Requires Node.js 20.18.1 or newer (zod 4 dropped Node 18, which is end-of-life).
+
 ## 0.2.0
 
 Focus: make AI-generated output actually USWDS-compliant by grounding it in the official markup.
