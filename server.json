@@ -3,7 +3,7 @@
   "name": "io.github.bibekpdl/uswds-mcp",
   "title": "Unofficial MCP Server for USWDS",
   "description": "Unofficial USWDS MCP: official markup, class-aware validator, and page composer for AI tools.",
-  "version": "0.2.0",
+  "version": "0.2.1",
   "repository": {
     "url": "https://github.com/bibekpdl/uswds-mcp",
     "source": "github"
@@ -12,7 +12,7 @@
     {
       "registryType": "npm",
       "identifier": "uswds-mcp",
-      "version": "0.2.0",
+      "version": "0.2.1",
       "transport": {
         "type": "stdio"
       }

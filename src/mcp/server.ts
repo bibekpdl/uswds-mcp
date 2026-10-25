@@ -334,7 +334,7 @@ export function createServer(): McpServer {
       inputSchema: {
         framework: z.string().optional(),
         package_json: z.string().optional(),
-        files: z.record(z.string()).optional(),
+        files: z.record(z.string(), z.string()).optional(),
         file_paths: z.array(z.string()).optional(),
         no_cdn: z.boolean().optional(),
         migration_scope: z.enum(["new-project", "single-page", "full-site"]).optional(),
