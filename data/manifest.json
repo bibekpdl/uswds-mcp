@@ -1,15 +1,15 @@
 {
-  "generatedAt": "2026-10-09T14:42:10.343Z",
+  "generatedAt": "2026-11-01T12:50:09.985Z",
   "sources": [
     {
       "name": "uswds-site",
       "url": "https://github.com/uswds/uswds-site",
-      "commit": "69c76d6c85b3c8c322dc38e4613e43451a34a06a"
+      "commit": "af13d80f071c3d897bee422f51954d9d7d156474"
     },
     {
       "name": "uswds",
       "url": "https://github.com/uswds/uswds",
-      "commit": "ec801339fa287d26ef0e1b3a19291eeaa0b3b634",
+      "commit": "029d6d792241b3b4107a630590a27ee951a152b5",
       "version": "3.14.0"
     }
   ],
